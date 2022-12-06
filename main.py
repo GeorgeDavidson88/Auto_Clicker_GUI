@@ -205,8 +205,6 @@ def on_press(key, app):
     if exit_threads.is_set():
         return False
 
-    print(key)
-
     global left_clicking
     global right_clicking
 
