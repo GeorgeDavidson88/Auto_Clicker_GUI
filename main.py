@@ -5,8 +5,7 @@ import time
 from tkinter import PhotoImage, StringVar
 
 import customtkinter
-import pynput
-from pynput.keyboard import Key
+from pynput.keyboard import Key, Controller, Listener
 from pynput.mouse import Button
 
 customtkinter.set_appearance_mode("dark")
@@ -22,7 +21,7 @@ class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
 
-        self.geometry("500x360")
+        self.geometry("500x300")
         self.resizable(0, 0)
 
         self.title("Auto Clicker")
@@ -150,15 +149,9 @@ class App(customtkinter.CTk):
             self.right_button_label.place(
                 anchor="e", x=215, y=25, width=97.5, height=30)
 
-        def bottom():
-            self.bottom_frame = customtkinter.CTkFrame(master=self)
-            self.bottom_frame.place(
-                anchor="s", x=250, y=350, width=480, height=50)
-
         top()
         left()
         right()
-        bottom()
 
     def mainloop(self):
         return super().mainloop()
@@ -167,7 +160,7 @@ class App(customtkinter.CTk):
 def left_clicker(app):
     while not exit_threads.is_set():
         if left_clicking:
-            pynput.mouse.Controller().click(Button.left)
+            Controller().click(Button.left)
 
             value_a = round(
                 (float(app.delay.get()[13:-1]) - float(app.offset.get()[15:-1])) * 1000)
@@ -189,7 +182,7 @@ def left_clicker(app):
 def right_clicker(app):
     while not exit_threads.is_set():
         if right_clicking:
-            pynput.mouse.Controller().click(Button.right)
+            Controller().click(Button.right)
 
             value_a = round(
                 (float(app.delay.get()[13:-1]) - float(app.offset.get()[15:-1])) * 1000)
@@ -212,6 +205,8 @@ def on_press(key, app):
     if exit_threads.is_set():
         return False
 
+    print(key)
+
     global left_clicking
     global right_clicking
 
@@ -223,7 +218,7 @@ def on_press(key, app):
 
 
 def keyboard_listener(app):
-    with pynput.keyboard.Listener(on_press=lambda key: on_press(key, app)) as keyboard_listener:
+    with Listener(on_press=lambda key: on_press(key, app)) as keyboard_listener:
         keyboard_listener.join()
 
 
@@ -243,8 +238,8 @@ def main():
     app.mainloop()
 
     exit_threads.set()
-    pynput.keyboard.Controller().press(Key.esc)
-    pynput.keyboard.Controller().release(Key.esc)
+    Controller().press(Key.esc)
+    Controller().release(Key.esc)
 
 
 if __name__ == "__main__":
