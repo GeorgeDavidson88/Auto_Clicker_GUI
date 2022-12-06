@@ -1,209 +1,250 @@
 import os
+import random
 import threading
 import time
 from tkinter import PhotoImage, StringVar
 
 import customtkinter
 import pynput
+from pynput.keyboard import Key
+from pynput.mouse import Button
 
 customtkinter.set_appearance_mode("dark")
 customtkinter.set_default_color_theme("blue")
 
 exit_threads = threading.Event()
 
+left_clicking = False
+right_clicking = False
+
 
 class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
 
-        self.geometry("500x345")
+        self.geometry("500x360")
         self.resizable(0, 0)
 
         self.title("Auto Clicker")
         self.iconphoto(True, PhotoImage(
             file=os.path.join("graphics", "icon.png")))
 
-        self.hotkey = StringVar(self, "Key.f6")
+        self.left_hotkey = StringVar(self, "'k'")
+        self.right_hotkey = StringVar(self, "Key.f6")
 
-        self.number_validate_register = self.register(self.number_validate)
+        self.delay = StringVar(self, f"Click Delay (0.1)")
+        self.offset = StringVar(self, f"Random Offset (0)")
 
-        self.clicking = False
+        def top():
+            self.top_frame = customtkinter.CTkFrame(master=self)
+            self.top_frame.place(anchor="n", x=250, y=10,
+                                 width=480, height=120)
 
-        self.top_frame = customtkinter.CTkFrame(master=self)
-        self.top_frame.place(anchor="n", relx=0.5, rely=0.02,
-                             relwidth=0.96, relheight=0.35)
+            self.delay_lable = customtkinter.CTkLabel(
+                master=self.top_frame, textvariable=self.delay)
+            self.delay_lable.place(anchor="n", x=240, y=10)
 
-        self.hrs_label = customtkinter.CTkLabel(
-            master=self.top_frame, text="Hours")
-        self.hrs_label.place(anchor="nw", relx=0.025,
-                             rely=0.025, relwidth=0.20, relheight=0.25)
+            self.delay_slider = customtkinter.CTkSlider(
+                master=self.top_frame, from_=10, to=1000, command=lambda delay: self.delay.set(f"Click Delay ({round(delay / 1000, 2)})"))
+            self.delay_slider.place(
+                anchor="n", x=240, y=40, width=460, height=20)
+            self.delay_slider.set(100)
 
-        self.hrs_entry = customtkinter.CTkEntry(
-            master=self.top_frame)
-        self.hrs_entry.place(anchor="nw", relx=0.025,
-                             rely=0.2, relwidth=0.20, relheight=0.25)
+            self.offset_lable = customtkinter.CTkLabel(
+                master=self.top_frame, textvariable=self.offset)
+            self.offset_lable.place(anchor="n", x=240, y=60)
 
-        self.hrs_entry.configure(validate="key", validatecommand=(
-            self.number_validate_register, "%P"))
+            self.offset_slider = customtkinter.CTkSlider(
+                master=self.top_frame, from_=0, to=1000, command=lambda delay: self.offset.set(f"Random Offset ({round(delay / 1000, 2)})"))
+            self.offset_slider.place(
+                anchor="n", x=240, y=90, width=460, height=20)
+            self.offset_slider.set(0)
 
-        self.mins_label = customtkinter.CTkLabel(
-            master=self.top_frame, text="Minutes")
-        self.mins_label.place(anchor="nw", relx=0.275,
-                              rely=0.025, relwidth=0.2, relheight=0.25)
+        def left():
+            self.middle_frame_top = customtkinter.CTkFrame(master=self)
+            self.middle_frame_top.place(anchor="center", x=250,
+                                        y=175, width=480, height=70)
 
-        self.mins_entry = customtkinter.CTkEntry(
-            master=self.top_frame)
-        self.mins_entry.place(anchor="nw", relx=0.275,
-                              rely=0.2, relwidth=0.2, relheight=0.25)
+            self.left_main_button_frame = customtkinter.CTkFrame(
+                master=self.middle_frame_top)
+            self.left_main_button_frame.place(
+                anchor="w", x=10, y=35, width=225, height=50)
 
-        self.mins_entry.configure(validate="key", validatecommand=(
-            self.number_validate_register, "%P"))
+            self.left_button_frame = customtkinter.CTkFrame(
+                master=self.left_main_button_frame)
+            self.left_button_frame.place(
+                anchor="w", x=10, y=25, width=97.5, height=30)
 
-        self.secs_lable = customtkinter.CTkLabel(
-            master=self.top_frame, text="Seconds")
-        self.secs_lable.place(anchor="nw", relx=0.525,
-                              rely=0.025, relwidth=0.2, relheight=0.25)
+            self.left_button_lable = customtkinter.CTkLabel(
+                master=self.left_button_frame, text="Hotkey")
+            self.left_button_lable.place(
+                anchor="center", x=48.75, y=15, width=97.5, height=20)
 
-        self.secs_entry = customtkinter.CTkEntry(
-            master=self.top_frame)
-        self.secs_entry.place(anchor="nw", relx=0.525,
-                              rely=0.2, relwidth=0.2, relheight=0.25)
+            self.left_hotkey_entry = customtkinter.CTkEntry(
+                master=self.left_main_button_frame, textvariable=self.left_hotkey)
+            self.left_hotkey_entry.place(
+                anchor="e", x=215, y=25, width=97.5, height=30)
 
-        self.secs_entry.configure(validate="key", validatecommand=(
-            self.number_validate_register, "%P"))
+            self.left_main_mouse_button_frame = customtkinter.CTkFrame(
+                master=self.middle_frame_top)
+            self.left_main_mouse_button_frame.place(
+                anchor="e", x=470, y=35, width=225, height=50)
 
-        self.mils_lable = customtkinter.CTkLabel(
-            master=self.top_frame, text="Milliseconds")
-        self.mils_lable.place(anchor="nw", relx=0.775,
-                              rely=0.025, relwidth=0.2, relheight=0.25)
+            self.left_mouse_button_frame = customtkinter.CTkFrame(
+                master=self.left_main_mouse_button_frame)
+            self.left_mouse_button_frame.place(
+                anchor="w", x=10, y=25, width=97.5, height=30)
 
-        self.mils_entry = customtkinter.CTkEntry(
-            master=self.top_frame)
-        self.mils_entry.place(anchor="nw", relx=0.775,
-                              rely=0.2, relwidth=0.2, relheight=0.25)
+            self.left_mouse_button_lable = customtkinter.CTkLabel(
+                master=self.left_mouse_button_frame, text="Mouse Button")
+            self.left_mouse_button_lable.place(
+                anchor="center", x=48.75, y=15, width=97.5, height=20)
 
-        self.mils_entry.configure(validate="key", validatecommand=(
-            self.number_validate_register, "%P"))
+            self.left_button_label = customtkinter.CTkLabel(
+                master=self.left_main_mouse_button_frame, text="Left")
+            self.left_button_label.place(
+                anchor="e", x=215, y=25, width=97.5, height=30)
 
-        self.random_checkbox = customtkinter.CTkCheckBox(
-            master=self.top_frame, text="Random Offset In Milliseconds")
-        self.random_checkbox.place(anchor="nw", relx=0.025, rely=0.65)
+        def right():
+            self.middle_frame_bottom = customtkinter.CTkFrame(master=self)
+            self.middle_frame_bottom.place(anchor="center", x=250,
+                                           y=255, width=480, height=70)
 
-        self.random_offset_entry = customtkinter.CTkEntry(
-            master=self.top_frame)
-        self.random_offset_entry.place(anchor="nw", relx=0.525,
-                                       rely=0.6, relwidth=0.45, relheight=0.25)
+            self.right_main_button_frame = customtkinter.CTkFrame(
+                master=self.middle_frame_bottom)
+            self.right_main_button_frame.place(
+                anchor="w", x=10, y=35, width=225, height=50)
 
-        self.random_offset_entry.configure(validate="key", validatecommand=(
-            self.number_validate_register, "%P"))
+            self.right_button_frame = customtkinter.CTkFrame(
+                master=self.right_main_button_frame)
+            self.right_button_frame.place(
+                anchor="w", x=10, y=25, width=97.5, height=30)
 
-        self.middle_frame = customtkinter.CTkFrame(master=self)
-        self.middle_frame.place(anchor="n", relx=0.5,
-                                rely=0.4, relwidth=0.96, relheight=0.12)
+            self.right_button_lable = customtkinter.CTkLabel(
+                master=self.right_button_frame, text="Hotkey")
+            self.right_button_lable.place(
+                anchor="center", x=48.75, y=15, width=97.5, height=20)
 
-        self.mouse_button_optionmenu = customtkinter.CTkOptionMenu(master=self.middle_frame, values=[
-                                                                   "Mouse Button Left", "Mouse Button Right"], command=lambda button: print(button),)
-        self.mouse_button_optionmenu.place(
-            anchor="nw", relx=0.03, rely=0.1, relwidth=0.46, relheight=0.8)
+            self.right_hotkey_entry = customtkinter.CTkEntry(
+                master=self.right_main_button_frame, textvariable=self.right_hotkey)
+            self.right_hotkey_entry.place(
+                anchor="e", x=215, y=25, width=97.5, height=30)
 
-        self.mode_optionmenu = customtkinter.CTkOptionMenu(master=self.middle_frame, values=[
-                                                           "Toggle", "Hold"], command=lambda mode: print(mode),)
-        self.mode_optionmenu.place(
-            anchor="ne", relx=0.97, rely=0.1, relwidth=0.46, relheight=0.8)
+            self.right_main_mouse_button_frame = customtkinter.CTkFrame(
+                master=self.middle_frame_bottom)
+            self.right_main_mouse_button_frame.place(
+                anchor="e", x=470, y=35, width=225, height=50)
 
-        self.bottom_frame = customtkinter.CTkFrame(master=self)
-        self.bottom_frame.place(anchor="n", relx=0.5,
-                                rely=0.55, relwidth=0.96, relheight=0.42)
+            self.right_mouse_button_frame = customtkinter.CTkFrame(
+                master=self.right_main_mouse_button_frame)
+            self.right_mouse_button_frame.place(
+                anchor="w", x=10, y=25, width=97.5, height=30)
 
-        self.main_hotkey_frame = customtkinter.CTkFrame(
-            master=self.bottom_frame)
-        self.main_hotkey_frame.place(
-            anchor="nw", relx=0.03, rely=0.05, relwidth=0.46, relheight=0.4)
+            self.right_mouse_button_lable = customtkinter.CTkLabel(
+                master=self.right_mouse_button_frame, text="Mouse Button")
+            self.right_mouse_button_lable.place(
+                anchor="center", x=48.75, y=15, width=97.5, height=20)
 
-        self.hotkey_frame = customtkinter.CTkFrame(
-            master=self.main_hotkey_frame)
-        self.hotkey_frame.place(anchor="w", relx=0.05,
-                                rely=0.5, relwidth=0.4, relheight=0.56)
+            self.right_button_label = customtkinter.CTkLabel(
+                master=self.right_main_mouse_button_frame, text="right")
+            self.right_button_label.place(
+                anchor="e", x=215, y=25, width=97.5, height=30)
 
-        self.hotkey_lable = customtkinter.CTkLabel(
-            master=self.hotkey_frame, text="Hotkey")
-        self.hotkey_lable.place(anchor="center", relx=0.5,
-                                rely=0.5, relwidth=0.5, relheight=0.6)
+        def bottom():
+            self.bottom_frame = customtkinter.CTkFrame(master=self)
+            self.bottom_frame.place(
+                anchor="s", x=250, y=350, width=480, height=50)
 
-        self.hotkey_entry = customtkinter.CTkEntry(
-            master=self.main_hotkey_frame, textvariable=self.hotkey)
-        self.hotkey_entry.place(anchor="e", relx=0.93,
-                                rely=0.5, relwidth=0.44, relheight=0.56)
-
-        self.theme_optionmenu = customtkinter.CTkOptionMenu(master=self.bottom_frame, values=[
-                                                            "Dark", "Light"], command=lambda theme: customtkinter.set_appearance_mode(theme))
-        self.theme_optionmenu.place(
-            anchor="ne", relx=0.97, rely=0.05, relwidth=0.46, relheight=0.4)
-
-        self.start_button = customtkinter.CTkButton(
-            master=self.bottom_frame, text="Start", command=self.start_clicking)
-        self.start_button.place(anchor="sw", relx=0.03,
-                                rely=0.95, relwidth=0.46, relheight=0.4)
-
-        self.stop_button = customtkinter.CTkButton(
-            master=self.bottom_frame, text="Stop", command=self.stop_clicking)
-        self.stop_button.place(anchor="se", relx=0.97,
-                               rely=0.95, relwidth=0.46, relheight=0.4)
-
-    def number_validate(self, input):
-        try:
-            if input == "" or int(input):
-                return True
-
-        except:
-            return False
-
-    def clicker(self):
-        while True:
-            if exit_threads.is_set():
-                break
-
-            if self.clicking:
-                pynput.mouse.Controller().click(pynput.mouse.Button.left, 1)
-                
-            time.sleep(0.01)
-
-    def toggle_event(self, key):
-        if exit_threads.is_set():
-            return False
-
-        key = str(key)
-        hotkey = str(self.hotkey.get())
-
-        if key == hotkey:
-            self.clicking = not self.clicking
-
-    def listener(self):
-        with pynput.keyboard.Listener(on_press=self.toggle_event) as listener:
-            listener.join()
-
-    def start_clicking(self):
-        self.clicking = True
-
-    def stop_clicking(self):
-        self.clicking = False
+        top()
+        left()
+        right()
+        bottom()
 
     def mainloop(self):
-        click_thred = threading.Thread(target=self.clicker)
-        click_thred.start()
-
-        listener_thred = threading.Thread(target=self.listener)
-        listener_thred.start()
-
         return super().mainloop()
+
+
+def left_clicker(app):
+    while not exit_threads.is_set():
+        if left_clicking:
+            pynput.mouse.Controller().click(Button.left)
+
+            value_a = round(
+                (float(app.delay.get()[13:-1]) - float(app.offset.get()[15:-1])) * 1000)
+            value_b = round(
+                (float(app.delay.get()[13:-1]) + float(app.offset.get()[15:-1])) * 1000)
+
+            if value_a < 0.01:
+                value_a = 0.01
+
+            if value_a > value_b:
+                value_a = value_b
+
+            time.sleep(random.randint(round(value_a), round(value_b)) / 1000)
+
+        else:
+            time.sleep(0.1)
+
+
+def right_clicker(app):
+    while not exit_threads.is_set():
+        if right_clicking:
+            pynput.mouse.Controller().click(Button.right)
+
+            value_a = round(
+                (float(app.delay.get()[13:-1]) - float(app.offset.get()[15:-1])) * 1000)
+            value_b = round(
+                (float(app.delay.get()[13:-1]) + float(app.offset.get()[15:-1])) * 1000)
+
+            if value_a < 0.01:
+                value_a = 0.01
+
+            if value_a > value_b:
+                value_a = value_b
+
+            time.sleep(random.randint(round(value_a), round(value_b)) / 1000)
+
+        else:
+            time.sleep(0.1)
+
+
+def on_press(key, app):
+    if exit_threads.is_set():
+        return False
+
+    global left_clicking
+    global right_clicking
+
+    if str(key) == app.left_hotkey.get():
+        left_clicking = not left_clicking
+
+    if str(key) == app.right_hotkey.get():
+        right_clicking = not right_clicking
+
+
+def keyboard_listener(app):
+    with pynput.keyboard.Listener(on_press=lambda key: on_press(key, app)) as keyboard_listener:
+        keyboard_listener.join()
 
 
 def main():
     app = App()
+
+    left_clicker_thred = threading.Thread(target=left_clicker, args=(app,))
+    left_clicker_thred.start()
+
+    right_clicker_thred = threading.Thread(target=right_clicker, args=(app,))
+    right_clicker_thred.start()
+
+    keyboard_listener_thred = threading.Thread(
+        target=keyboard_listener, args=(app,))
+    keyboard_listener_thred.start()
+
     app.mainloop()
 
     exit_threads.set()
-    pynput.keyboard.Controller().press(pynput.keyboard.Key.esc)
+    pynput.keyboard.Controller().press(Key.esc)
+    pynput.keyboard.Controller().release(Key.esc)
 
 
 if __name__ == "__main__":
