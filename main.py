@@ -5,16 +5,15 @@ import time
 from tkinter import PhotoImage, StringVar
 
 import customtkinter
-from pynput.keyboard import Key, Controller, Listener
-from pynput.mouse import Button
-
-customtkinter.set_appearance_mode("dark")
-customtkinter.set_default_color_theme("blue")
+import pynput
 
 exit_threads = threading.Event()
 
 left_clicking = False
 right_clicking = False
+
+customtkinter.set_appearance_mode("dark")
+customtkinter.set_default_color_theme("blue")
 
 
 class App(customtkinter.CTk):
@@ -160,7 +159,7 @@ class App(customtkinter.CTk):
 def left_clicker(app):
     while not exit_threads.is_set():
         if left_clicking:
-            Controller().click(Button.left)
+            pynput.mouse.Controller().click(pynput.mouse.Button.left)
 
             value_a = round(
                 (float(app.delay.get()[13:-1]) - float(app.offset.get()[15:-1])) * 1000)
@@ -182,7 +181,7 @@ def left_clicker(app):
 def right_clicker(app):
     while not exit_threads.is_set():
         if right_clicking:
-            Controller().click(Button.right)
+            pynput.mouse.Controller().click(pynput.mouse.Button.right)
 
             value_a = round(
                 (float(app.delay.get()[13:-1]) - float(app.offset.get()[15:-1])) * 1000)
@@ -216,7 +215,7 @@ def on_press(key, app):
 
 
 def keyboard_listener(app):
-    with Listener(on_press=lambda key: on_press(key, app)) as keyboard_listener:
+    with pynput.keyboard.Listener(on_press=lambda key: on_press(key, app)) as keyboard_listener:
         keyboard_listener.join()
 
 
@@ -236,8 +235,8 @@ def main():
     app.mainloop()
 
     exit_threads.set()
-    Controller().press(Key.esc)
-    Controller().release(Key.esc)
+    pynput.keyboard.Controller().press(pynput.keyboard.Key.esc)
+    pynput.keyboard.Controller().release(pynput.keyboard.Key.esc)
 
 
 if __name__ == "__main__":
