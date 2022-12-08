@@ -27,11 +27,11 @@ class App(customtkinter.CTk):
         self.iconphoto(True, PhotoImage(
             file=os.path.join("graphics", "icon.png")))
 
-        self.left_hotkey = StringVar(self, "'k'")
-        self.right_hotkey = StringVar(self, "Key.f6")
+        self.left_hotkey = StringVar(self, "'x'")
+        self.right_hotkey = StringVar(self, "Key.ctrl_l")
 
-        self.delay = StringVar(self, f"Click Delay (0.1)")
-        self.offset = StringVar(self, f"Random Offset (0)")
+        self.delay = StringVar(self, f"Click Delay (0.06)")
+        self.offset = StringVar(self, f"Random Offset (0.04)")
 
         def top():
             self.top_frame = customtkinter.CTkFrame(master=self)
@@ -46,7 +46,7 @@ class App(customtkinter.CTk):
                 master=self.top_frame, from_=10, to=1000, command=lambda delay: self.delay.set(f"Click Delay ({round(delay / 1000, 2)})"))
             self.delay_slider.place(
                 anchor="n", x=240, y=40, width=460, height=20)
-            self.delay_slider.set(100)
+            self.delay_slider.set(60)
 
             self.offset_lable = customtkinter.CTkLabel(
                 master=self.top_frame, textvariable=self.offset)
@@ -56,7 +56,7 @@ class App(customtkinter.CTk):
                 master=self.top_frame, from_=0, to=1000, command=lambda delay: self.offset.set(f"Random Offset ({round(delay / 1000, 2)})"))
             self.offset_slider.place(
                 anchor="n", x=240, y=90, width=460, height=20)
-            self.offset_slider.set(0)
+            self.offset_slider.set(40)
 
         def left():
             self.middle_frame_top = customtkinter.CTkFrame(master=self)
