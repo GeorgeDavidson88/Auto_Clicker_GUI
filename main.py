@@ -7,9 +7,9 @@ from tkinter import PhotoImage, StringVar
 import customtkinter
 import pynput
 
-exit_threads = threading.Event()
-
+# Set appearance mode ("light" or "dark").
 customtkinter.set_appearance_mode("dark")
+# Set the colour theme ("blue," "dark blue," "green").
 customtkinter.set_default_color_theme("blue")
 
 
@@ -17,9 +17,8 @@ class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
 
-        self.geometry("500x300")
-        self.resizable(0, 0)
-
+        self.geometry("500x300")  # Window Size
+        self.resizable(0, 0)  # So you can't resize the window.
         self.title("Auto Clicker")
         self.iconphoto(False, PhotoImage(
             file=os.path.join("icon", "icon.png")))
@@ -142,9 +141,6 @@ class App(customtkinter.CTk):
         self.right_button_label.place(
             anchor="e", x=215, y=25, width=97.5, height=30)
 
-    def mainloop(self):
-        return super().mainloop()
-
 
 class Clicker:
     def __init__(self):
@@ -158,37 +154,26 @@ class Clicker:
             (float(app.delay.get()[13:-1]) + float(app.offset.get()[15:-1])) * 1000)
 
         if subtracted_offset < 0.01:
+            # Otherwise, the programme will try to set a click delay that is below 0, which will crash the program.
             subtracted_offset = 0.01
 
         if subtracted_offset > added_offset:
+            # There is a chance that when changing the sliders, the subtracted offset will be greater than the added offset, which will crash the program.
             subtracted_offset = added_offset
 
         return random.randint(round(subtracted_offset), round(added_offset)) / 1000
 
-    def left_clicker(self, app):
-        while not exit_threads.is_set():
+    def clicker(self, app):
+        while True:
             if self.left_clicking:
                 pynput.mouse.Controller().click(pynput.mouse.Button.left)
 
-                time.sleep(self.calculate_delay(app))
-
-            else:
-                time.sleep(0.1)
-
-    def right_clicker(self, app):
-        while not exit_threads.is_set():
             if self.right_clicking:
                 pynput.mouse.Controller().click(pynput.mouse.Button.right)
 
-                time.sleep(self.calculate_delay(app))
-
-            else:
-                time.sleep(0.1)
+            time.sleep(0.01)
 
     def on_press(self, key, app):
-        if exit_threads.is_set():
-            return False
-
         if str(key) == app.left_hotkey.get():
             self.left_clicking = not self.left_clicking
 
@@ -197,6 +182,7 @@ class Clicker:
 
 
 def keyboard_listener(app, clicker):
+    # Listen for keys that the user clicks and, when that happens, call the "on_press" function.
     with pynput.keyboard.Listener(on_press=lambda key: clicker.on_press(key, app)) as keyboard_listener:
         keyboard_listener.join()
 
@@ -205,23 +191,20 @@ def main():
     app = App()
     clicker = Clicker()
 
-    left_clicker_thred = threading.Thread(
-        target=clicker.left_clicker, args=(app,))
-    left_clicker_thred.start()
+    # Create and start the left-clicker thread.
+    clicker_thred = threading.Thread(
+        target=clicker.clicker, args=(app,))
+    clicker_thred.daemon = True
+    clicker_thred.start()
 
-    right_clicker_thred = threading.Thread(
-        target=clicker.right_clicker, args=(app,))
-    right_clicker_thred.start()
-
+    # Create and start the thread that listens for keys.
     keyboard_listener_thred = threading.Thread(
         target=keyboard_listener, args=(app, clicker))
+    keyboard_listener_thred.daemon = True
     keyboard_listener_thred.start()
 
+    # The main thread will update the GUI
     app.mainloop()
-
-    exit_threads.set()
-    pynput.keyboard.Controller().press(pynput.keyboard.Key.esc)
-    pynput.keyboard.Controller().release(pynput.keyboard.Key.esc)
 
 
 if __name__ == "__main__":
