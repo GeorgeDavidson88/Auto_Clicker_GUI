@@ -149,24 +149,27 @@ class App(customtkinter.CTk):
         return super().mainloop()
 
 
+def calculate_delay(app):
+    subtracted_offset = round(
+        (float(app.delay.get()[13:-1]) - float(app.offset.get()[15:-1])) * 1000)
+    added_offset = round(
+        (float(app.delay.get()[13:-1]) + float(app.offset.get()[15:-1])) * 1000)
+
+    if subtracted_offset < 0.01:
+        subtracted_offset = 0.01
+
+    if subtracted_offset > added_offset:
+        subtracted_offset = added_offset
+
+    return random.randint(round(subtracted_offset), round(added_offset)) / 1000
+
+
 def left_clicker(app):
     while not exit_threads.is_set():
         if left_clicking:
             pynput.mouse.Controller().click(pynput.mouse.Button.left)
 
-            subtracted_offset = round(
-                (float(app.delay.get()[13:-1]) - float(app.offset.get()[15:-1])) * 1000)
-            added_offset = round(
-                (float(app.delay.get()[13:-1]) + float(app.offset.get()[15:-1])) * 1000)
-
-            if subtracted_offset < 0.01:
-                subtracted_offset = 0.01
-
-            if subtracted_offset > added_offset:
-                subtracted_offset = added_offset
-
-            time.sleep(random.randint(
-                round(subtracted_offset), round(added_offset)) / 1000)
+            time.sleep(calculate_delay(app))
 
         else:
             time.sleep(0.1)
@@ -177,19 +180,7 @@ def right_clicker(app):
         if right_clicking:
             pynput.mouse.Controller().click(pynput.mouse.Button.right)
 
-            subtracted_offset = round(
-                (float(app.delay.get()[13:-1]) - float(app.offset.get()[15:-1])) * 1000)
-            added_offset = round(
-                (float(app.delay.get()[13:-1]) + float(app.offset.get()[15:-1])) * 1000)
-
-            if subtracted_offset < 0.01:
-                subtracted_offset = 0.01
-
-            if subtracted_offset > added_offset:
-                subtracted_offset = added_offset
-
-            time.sleep(random.randint(
-                round(subtracted_offset), round(added_offset)) / 1000)
+            time.sleep(calculate_delay(app))
 
         else:
             time.sleep(0.1)
