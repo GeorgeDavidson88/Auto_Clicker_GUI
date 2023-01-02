@@ -149,73 +149,77 @@ class App(customtkinter.CTk):
         return super().mainloop()
 
 
-def calculate_delay(app):
-    subtracted_offset = round(
-        (float(app.delay.get()[13:-1]) - float(app.offset.get()[15:-1])) * 1000)
-    added_offset = round(
-        (float(app.delay.get()[13:-1]) + float(app.offset.get()[15:-1])) * 1000)
-
-    if subtracted_offset < 0.01:
-        subtracted_offset = 0.01
-
-    if subtracted_offset > added_offset:
-        subtracted_offset = added_offset
-
-    return random.randint(round(subtracted_offset), round(added_offset)) / 1000
+class Clicker:
+    def __init__(self):
+        self.left_clicking = False
+        self.right_clicking = False
 
 
-def left_clicker(app):
-    while not exit_threads.is_set():
-        if left_clicking:
-            pynput.mouse.Controller().click(pynput.mouse.Button.left)
+    def calculate_delay(self, app):
+        subtracted_offset = round(
+            (float(app.delay.get()[13:-1]) - float(app.offset.get()[15:-1])) * 1000)
+        added_offset = round(
+            (float(app.delay.get()[13:-1]) + float(app.offset.get()[15:-1])) * 1000)
 
-            time.sleep(calculate_delay(app))
+        if subtracted_offset < 0.01:
+            subtracted_offset = 0.01
 
-        else:
-            time.sleep(0.1)
+        if subtracted_offset > added_offset:
+            subtracted_offset = added_offset
 
-
-def right_clicker(app):
-    while not exit_threads.is_set():
-        if right_clicking:
-            pynput.mouse.Controller().click(pynput.mouse.Button.right)
-
-            time.sleep(calculate_delay(app))
-
-        else:
-            time.sleep(0.1)
+        return random.randint(round(subtracted_offset), round(added_offset)) / 1000
 
 
-def on_press(key, app):
-    if exit_threads.is_set():
-        return False
+    def left_clicker(self, app):
+        while not exit_threads.is_set():
+            if self.left_clicking:
+                pynput.mouse.Controller().click(pynput.mouse.Button.left)
 
-    global left_clicking
-    global right_clicking
+                time.sleep(self.calculate_delay(app))
 
-    if str(key) == app.left_hotkey.get():
-        left_clicking = not left_clicking
-
-    if str(key) == app.right_hotkey.get():
-        right_clicking = not right_clicking
+            else:
+                time.sleep(0.1)
 
 
-def keyboard_listener(app):
-    with pynput.keyboard.Listener(on_press=lambda key: on_press(key, app)) as keyboard_listener:
+    def right_clicker(self, app):
+        while not exit_threads.is_set():
+            if self.right_clicking:
+                pynput.mouse.Controller().click(pynput.mouse.Button.right)
+
+                time.sleep(self.calculate_delay(app))
+
+            else:
+                time.sleep(0.1)
+
+
+    def on_press(self, key, app):
+        if exit_threads.is_set():
+            return False
+
+        if str(key) == app.left_hotkey.get():
+            self.left_clicking = not self.left_clicking
+
+        if str(key) == app.right_hotkey.get():
+            self.right_clicking = not self.right_clicking
+
+
+def keyboard_listener(app, clicker):
+    with pynput.keyboard.Listener(on_press=lambda key: clicker.on_press(key, app)) as keyboard_listener:
         keyboard_listener.join()
 
 
-def main():
+def main(): 
     app = App()
+    clicker = Clicker()
 
-    left_clicker_thred = threading.Thread(target=left_clicker, args=(app,))
+    left_clicker_thred = threading.Thread(target=clicker.left_clicker, args=(app,))
     left_clicker_thred.start()
 
-    right_clicker_thred = threading.Thread(target=right_clicker, args=(app,))
+    right_clicker_thred = threading.Thread(target=clicker.right_clicker, args=(app,))
     right_clicker_thred.start()
 
     keyboard_listener_thred = threading.Thread(
-        target=keyboard_listener, args=(app,))
+        target=keyboard_listener, args=(app, clicker))
     keyboard_listener_thred.start()
 
     app.mainloop()
