@@ -9,9 +9,6 @@ import pynput
 
 exit_threads = threading.Event()
 
-left_clicking = False
-right_clicking = False
-
 customtkinter.set_appearance_mode("dark")
 customtkinter.set_default_color_theme("blue")
 
@@ -154,7 +151,6 @@ class Clicker:
         self.left_clicking = False
         self.right_clicking = False
 
-
     def calculate_delay(self, app):
         subtracted_offset = round(
             (float(app.delay.get()[13:-1]) - float(app.offset.get()[15:-1])) * 1000)
@@ -169,7 +165,6 @@ class Clicker:
 
         return random.randint(round(subtracted_offset), round(added_offset)) / 1000
 
-
     def left_clicker(self, app):
         while not exit_threads.is_set():
             if self.left_clicking:
@@ -180,7 +175,6 @@ class Clicker:
             else:
                 time.sleep(0.1)
 
-
     def right_clicker(self, app):
         while not exit_threads.is_set():
             if self.right_clicking:
@@ -190,7 +184,6 @@ class Clicker:
 
             else:
                 time.sleep(0.1)
-
 
     def on_press(self, key, app):
         if exit_threads.is_set():
@@ -208,14 +201,16 @@ def keyboard_listener(app, clicker):
         keyboard_listener.join()
 
 
-def main(): 
+def main():
     app = App()
     clicker = Clicker()
 
-    left_clicker_thred = threading.Thread(target=clicker.left_clicker, args=(app,))
+    left_clicker_thred = threading.Thread(
+        target=clicker.left_clicker, args=(app,))
     left_clicker_thred.start()
 
-    right_clicker_thred = threading.Thread(target=clicker.right_clicker, args=(app,))
+    right_clicker_thred = threading.Thread(
+        target=clicker.right_clicker, args=(app,))
     right_clicker_thred.start()
 
     keyboard_listener_thred = threading.Thread(
