@@ -1,6 +1,6 @@
 # Auto Clicker
 
-An auto-clicker with a GUI.
+An auto-clicker made with customtkinter.
 
 ![auto_clicker_gui.png](README.assets/auto_clicker_gui.png)
 
