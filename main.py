@@ -182,7 +182,7 @@ class Clicker:
 
 
 def keyboard_listener(app, clicker):
-    # Listen for keys that the user clicks and, when that happens, call the "on_press" function.
+    # Listen for keys that the user pressed, and when a key is pressed, call the "on_press" function.
     with pynput.keyboard.Listener(on_press=lambda key: clicker.on_press(key, app)) as keyboard_listener:
         keyboard_listener.join()
 
