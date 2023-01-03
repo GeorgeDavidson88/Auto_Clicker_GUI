@@ -191,7 +191,7 @@ def main():
     app = App()
     clicker = Clicker()
 
-    # Create and start the left-clicker thread.
+    # Create and start the clicker_thred.
     clicker_thred = threading.Thread(
         target=clicker.clicker, args=(app,))
     clicker_thred.daemon = True
