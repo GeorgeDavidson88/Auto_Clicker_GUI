@@ -11,13 +11,13 @@ An auto-clicker made with customtkinter.
 Make sure you have customtkinter installed.
 
 ```python
-pip install customtkinter # install pygame with pip
+pip install customtkinter # install customtkinter with pip
 ```
 
 Make sure you have pynput installed.
 
 ```python
-pip install pynput # install pygame with pip
+pip install pynput # install pynput with pip
 ```
 
 ### How To Use
