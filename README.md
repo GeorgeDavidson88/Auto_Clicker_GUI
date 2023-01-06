@@ -1,4 +1,4 @@
-# Auto Clicker GUI
+# Auto-Clicker-GUI
 
 An auto-clicker made with customtkinter.
 
